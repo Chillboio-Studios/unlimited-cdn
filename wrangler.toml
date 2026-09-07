@@ -1,0 +1,72 @@
+# Edge Image Proxy - Configuration
+#
+# Self-hosted image CDN powered by Cloudflare Workers and R2.
+# Cache and serve images from any origin with zero egress fees.
+#
+# SETUP:
+#   1. Copy this file: cp wrangler.toml.example wrangler.toml
+#   2. Replace ALL instances of "example.com" with your actual domain
+#   3. Replace YOUR_ACCOUNT_ID with your Cloudflare account ID
+#   4. Create R2 bucket: wrangler r2 bucket create unlimited-cdn-cache
+#   5. Deploy: npm run deploy
+#   6. Add custom domain in Cloudflare dashboard (see README)
+
+name = "unlimited-cdn"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Your Cloudflare account ID
+# Find it: wrangler whoami, or in dashboard URL after /accounts/
+account_id = "3f0c22163d4b61dd13bf0f4c268f2e67"
+
+# =============================================================================
+# CDN DOMAIN - Your edge endpoint where browsers request images
+# =============================================================================
+# pattern: Your CDN subdomain (e.g., cdn.example.com, images.example.com)
+# zone_name: The Cloudflare zone (your root domain, must be in your account)
+routes = [
+  { pattern = "cors-proxy.chillboiostudios.com/*", zone_name = "chillboiostudios.com" }
+]
+
+# R2 bucket for image caching (private - worker handles all access)
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "unlimited-cdn-cache"
+
+# =============================================================================
+# ORIGIN SERVERS - Where images are fetched FROM
+# =============================================================================
+# URL format: https://CDN_DOMAIN/ORIGIN_DOMAIN/path/to/image.jpg
+# Example:    https://cdn.example.com/origin.com/images/photo.jpg
+#                     └─────┬───────┘ └────┬────┘
+#                      CDN domain    Origin server
+
+[vars]
+# ORIGIN_MODE: Which origins can use this CDN
+#   "list" (recommended) - Only allow domains in ALLOWED_ORIGINS
+#   "open"               - Allow any domain (development only)
+ORIGIN_MODE = "list"
+
+# ALLOWED_ORIGINS: Origin server domain(s) to cache images from
+#
+# Examples:
+#   Single origin:  "example.com"
+#   Multiple:       "example.com,www.example.com,blog.example.com"
+#   Wildcard:       "*.example.com" (subdomains only, NOT example.com itself)
+#
+ALLOWED_ORIGINS = "chillboiostudios.com,cdn.chillboiostudios.com"
+
+# BLOCKED_ORIGINS: Domains to always reject (optional)
+# Use "*" as emergency kill switch to block all traffic
+BLOCKED_ORIGINS = ""
+
+# Maximum image file size to cache (larger files redirect to origin)
+MAX_FILE_SIZE = "50MB"
+
+# Origin fetch timeout in milliseconds
+FETCH_TIMEOUT = "30000"
+
+# Debug mode - enables ?view=1 parameter for troubleshooting
+# SECURITY: Set to "false" in production
+DEBUG = "false"
