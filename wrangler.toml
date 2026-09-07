@@ -55,7 +55,7 @@ ORIGIN_MODE = "list"
 #   Multiple:       "example.com,www.example.com,blog.example.com"
 #   Wildcard:       "*.example.com" (subdomains only, NOT example.com itself)
 #
-ALLOWED_ORIGINS = "chillboiostudios.com,cdn.chillboiostudios.com"
+ALLOWED_ORIGINS = "chillboiostudios.com,*.chillboiostudios.com, *.sdvr.chillboiostudios.com"
 
 # BLOCKED_ORIGINS: Domains to always reject (optional)
 # Use "*" as emergency kill switch to block all traffic
